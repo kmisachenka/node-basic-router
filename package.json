@@ -1,7 +1,7 @@
 {
-  "name": "node-todo-app",
+  "name": "node-social-network",
   "version": "0.0.1",
-  "description": "ToDo Application",
+  "description": "Social Network",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,12 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kmisachenka/node-todo.git"
+    "url": "git+https://github.com/kmisachenka/node-social-network.git"
   },
   "author": "Kiryl Misachenka <kmisachenka@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kmisachenka/node-todo/issues"
+    "url": "https://github.com/kmisachenka/node-social-network/issues"
   },
-  "homepage": "https://github.com/kmisachenka/node-todo#readme"
+  "homepage": "https://github.com/kmisachenka/node-social-network#readme"
 }
