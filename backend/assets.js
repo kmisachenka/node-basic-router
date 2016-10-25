@@ -1,12 +1,9 @@
-const http = require('http');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 
-const PORT = 9000;
+let files = [];
 
-let files = {};
-
-const assets = (req, res) => {
+module.exports = (req, res) => {
 
     const sendError = (message, code) => {
         if (code === undefined) {
@@ -69,12 +66,6 @@ const assets = (req, res) => {
         }
     };
 
-    readFile(path.normalize(__dirname + req.url));
+    readFile(path.normalize('../static/' + req.url));
 
-};
-
-
-
-const server = http.createServer(assets).listen(PORT);
-
-console.log('Listening on ' + PORT + ' port');
+}

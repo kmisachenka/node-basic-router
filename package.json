@@ -4,7 +4,7 @@
   "description": "Social Network",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha test",
     "start": "node ./src/server.js"
   },
   "repository": {
@@ -18,12 +18,7 @@
   },
   "homepage": "https://github.com/kmisachenka/node-social-network#readme",
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-concat": "^2.6.0",
-    "gulp-less": "^3.1.0",
-    "gulp-minify-css": "^1.2.4",
-    "gulp-rename": "^1.2.2",
-    "gulp-uglify": "^2.0.0",
+    "chai": "^3.5.0",
     "mocha": "^3.1.2"
   }
 }
