@@ -1,3 +1,5 @@
 .vagrant
 *.retry
 .idea/
+node_modules
+node-debug.log
