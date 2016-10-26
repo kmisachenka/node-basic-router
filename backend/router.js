@@ -1,13 +1,15 @@
-const http = require('http');
+const http = require('http')
+const Stack = require('./stack');
+const Middleware = require('./middleware');
 
 module.exports = function router () {
 
     return {
 
-        middlewares: [],
+        stack: new Stack(),
         routes: [],
 
-        /* Default route */
+        /* Default route. Will be used if defined as callback */
 
         defaultRoute: 'undefined',
 
@@ -17,49 +19,44 @@ module.exports = function router () {
         },
 
         add(route, handler) {
-            this.routes.push({ route: route, handler: handler});
+            this.routes.push({ lookup: route, handler: handler});
             return this;
         },
 
         use(handler) {
-            this.middlewares.push({ handler: handler });
-            return this;
+            this.stack.add(handler);
         },
 
-        check(url, req, res) {
+        resolve(req, res) {
+
+            const url = req.url;
 
             res.__proto__.json = (data) => {
                 res.writeHead(200, { 'Content-Type' : 'application/json' });
                 res.end(JSON.stringify(data));
             }
 
-            for (let id in this.middlewares) {
-                if (typeof this.middlewares[id].handler === 'function') {
-                    this.middlewares[id].handler(req, res);
-                }
+            this.stack.route(req, res);
+
+            this.routes
+                .filter(route => { return route.lookup === url })
+                .forEach(route => {
+                    route.handler(req, res)
+                    return
+                });
+
+
+            if(!res.finished) {
+                res.writeHead(404, { 'Content-Type' : 'text/html'});
+                res.end(`Route for ${url} not found`);
             }
-
-            for (let id in this.routes) {
-                if (this.routes[id].route === url) {
-                    return this.routes[id].handler(req, res);
-                }
-            }
-
-
-            if (typeof this.defaultRoute === 'function') {
-                this.defaultRoute(req, res);
-            } else {
-                res.writeHead(404);
-                res.end(`Handler for route ${url} not found`);
-            }
-
 
         },
 
         listen(port, callback) {
 
             http.createServer((req, res) => {
-                this.check(req.url, req, res);
+                this.resolve(req, res);
             }).listen(port);
 
             if (typeof callback === 'function') {
@@ -76,25 +73,25 @@ module.exports.static = (root) => {
 
     if (typeof root !== 'string') {
         console.log('root must be a string')
-        return;
     }
 
-    return (req, res) => {
-        if (req.url.includes('.')){
-            assets(root, req, res);
-            return;
+    return (req, res, next) => {
+        if (req.url.includes('.')) {
+            assets(root, req, res, next);
+        } else {
+            next()
         }
     }
 }
 
 module.exports.logger = () => {
-    return (req, res) => {
+    return (req, res, next) => {
         let start = Date.now();
         res.on('finish', () => {
             let finish = Date.now();
             console.log(`${req.method} ${req.url} ${finish - start} ms`)
         })
-
+        next();
     }
 
 }

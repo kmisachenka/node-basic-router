@@ -3,7 +3,7 @@ const fs = require('fs');
 
 let files = [];
 
-module.exports = (folder, req, res) => {
+module.exports = (folder, req, res, next) => {
 
     const sendError = (message, code) => {
         if (code === undefined) {
@@ -50,6 +50,7 @@ module.exports = (folder, req, res) => {
     const readFile = (filePath) => {
         if (files[filePath]) {
             serve(files[filePath]);
+            next();
         } else {
             fs.readFile(filePath, (err, data) => {
                 if (err) {
@@ -61,6 +62,7 @@ module.exports = (folder, req, res) => {
                     content: data
                 }
                 serve(files[filePath]);
+                next();
             });
 
         }
