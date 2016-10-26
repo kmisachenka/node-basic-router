@@ -3,7 +3,7 @@ const fs = require('fs');
 
 let files = [];
 
-module.exports = (req, res) => {
+module.exports = (folder, req, res) => {
 
     const sendError = (message, code) => {
         if (code === undefined) {
@@ -66,6 +66,6 @@ module.exports = (req, res) => {
         }
     };
 
-    readFile(path.normalize('../static/' + req.url));
+    readFile(path.normalize(folder + req.url));
 
 }

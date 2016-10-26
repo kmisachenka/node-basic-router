@@ -3,25 +3,30 @@ const fs = require('fs');
 const path = require('path');
 
 const assets = require('./backend/assets')
-const router = require('./backend/router')();
+const router = require('./backend/router');
 
 const PORT = 9000;
 
-router
-    .add('static', assets)
-    .add('/', (req, res) => {
-        res.writeHead(200, { 'Content-Type' : 'application/json' });
-        res.end('root' + '\n');
+const app = router();
+
+app.use(router.logger());
+app.use(router.static(__dirname + '/public'));
+
+app
+    .add('/route', (req, res) => {
+        let response = {
+            handler: "route handler"
+        }
+        res.json(response);
     })
-    .add('route', (req, res) => {
-        res.writeHead(200, { 'Content-Type' : 'application/json' });
-        res.end('route' + '\n');
+    .all((req, res) => {
+        let response = {
+            handler: "default handler"
+        }
+        res.json(response);
     });
 
-let process = (req, res) => {
-    router.check(req.url, req, res);
-}
+app.listen(PORT, () => {
+    console.log('Listening on ' + PORT + ' port');
+})
 
-const server = http.createServer(process).listen(PORT);
-
-console.log('Listening on ' + PORT + ' port');
