@@ -1,13 +1,13 @@
 const expect = require('chai').expect;
 
-const Router = require('../backend/router');
+const Router = require('../backend/router').Router;
 
 describe('router', () => {
 
     let router;
 
     beforeEach(() => {
-        router = Router();
+        router = new Router();
     });
 
 
@@ -21,11 +21,11 @@ describe('router', () => {
    });
 
     describe('check()', () => {
-        it('shoud check existing route', () => {
+        it('shoud resolve existing route', () => {
             router.add('/route', (req, res) => {
                 return {};
             })
-            let route = router.check('/route', {}, {});
+            let route = router.resolve({ url: '/route'}, {});
             expect(route).to.exist;
         })
     })

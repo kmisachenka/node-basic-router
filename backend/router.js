@@ -27,29 +27,36 @@ class Router {
         this.middlewares.push({ handler: handler });
     }
 
-    resolve(req, res) {
+    _handleMiddlewares(req, res) {
+        this.middlewares.forEach((middleware) => {
+            middleware.handler(req, res);
+        })
+        return res.finished;
+    }
 
-        const url = req.url;
+    _handleRoutes(req, res) {
+        let success = false;
+        this.routes
+            .filter(route => { return route.lookup === req.url })
+            .forEach(route => {
+                route.handler(req, res)
+                success = true;
+            });
+       return success
+    }
+
+    resolve(req, res) {
 
         res.__proto__.json = (data) => {
             res.writeHead(200, { 'Content-Type' : 'application/json' });
             res.end(JSON.stringify(data));
         }
 
-        /* Handle middlewares */
+        /* Handle route */
 
-        this.middlewares.forEach((middleware) => {
-            middleware.handler(req, res);
-        })
-
-        /* Handle routes */
-
-        this.routes
-            .filter(route => { return route.lookup === url })
-            .forEach(route => {
-                route.handler(req, res)
-                return
-            });
+        if (this._handleMiddlewares(req, res) || this._handleRoutes(req, res)) {
+            return;
+        }
 
         /* Handle default route if exists */
 
