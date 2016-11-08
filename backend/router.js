@@ -1,97 +1,111 @@
-const http = require('http')
-const Stack = require('./stack');
-const Middleware = require('./middleware');
+const http = require('http');
 
-module.exports = function router () {
+class Router {
 
-    return {
+    constructor() {
 
-        stack: new Stack(),
-        routes: [],
+        this.middlewares = [];
+        this.routes = [];
 
-        /* Default route. Will be used if defined as callback */
+        /* Default route. Will be used if other routes not match */
 
-        defaultRoute: 'undefined',
+        this.defaultRoute = 'undefined';
 
-        all (handler) {
-            this.defaultRoute = handler;
-            return this;
-        },
+    }
 
-        add(route, handler) {
-            this.routes.push({ lookup: route, handler: handler});
-            return this;
-        },
+    all(handler) {
+        this.defaultRoute = handler;
+        return this;
+    }
 
-        use(handler) {
-            this.stack.add(handler);
-        },
+    add(route, handler) {
+        this.routes.push({ lookup: route, handler: handler});
+        return this;
+    }
 
-        resolve(req, res) {
+    use(handler) {
+        this.middlewares.push({ handler: handler });
+    }
 
-            const url = req.url;
+    resolve(req, res) {
 
-            res.__proto__.json = (data) => {
-                res.writeHead(200, { 'Content-Type' : 'application/json' });
-                res.end(JSON.stringify(data));
-            }
+        const url = req.url;
 
-            this.stack.route(req, res);
+        res.__proto__.json = (data) => {
+            res.writeHead(200, { 'Content-Type' : 'application/json' });
+            res.end(JSON.stringify(data));
+        }
 
-            this.routes
-                .filter(route => { return route.lookup === url })
-                .forEach(route => {
-                    route.handler(req, res)
-                    return
-                });
+        /* Handle middlewares */
 
+        this.middlewares.forEach((middleware) => {
+            middleware.handler(req, res);
+        })
 
-            if(!res.finished) {
-                res.writeHead(404, { 'Content-Type' : 'text/html'});
-                res.end(`Route for ${url} not found`);
-            }
+        /* Handle routes */
 
-        },
+        this.routes
+            .filter(route => { return route.lookup === url })
+            .forEach(route => {
+                route.handler(req, res)
+                return
+            });
 
-        listen(port, callback) {
+        /* Handle default route if exists */
 
-            http.createServer((req, res) => {
-                this.resolve(req, res);
-            }).listen(port);
+        if (this.defaultRoute) {
+            this.defaultRoute(req, res);
+            return;
+        }
 
-            if (typeof callback === 'function') {
-                callback();
-            }
+        /* If it is not - sent 404 */
+
+        if(!res.finished) {
+            res.writeHead(404, { 'Content-Type' : 'text/html'});
+            res.end(`Route for ${url} not found`);
+        }
+
+    }
+
+    listen(port, callback) {
+
+        http.createServer((req, res) => {
+            this.resolve(req, res);
+        }).listen(port);
+
+        if (typeof callback === 'function') {
+            callback();
+        } else {
+            throw new Error("callback must be a function")
         }
     }
 
-};
+}
+
+module.exports.Router = Router;
 
 const assets = require('./assets');
 
 module.exports.static = (root) => {
 
     if (typeof root !== 'string') {
-        console.log('root must be a string')
+        throw new Error('root must be a string')
     }
 
-    return (req, res, next) => {
+    return (req, res) => {
         if (req.url.includes('.')) {
-            assets(root, req, res, next);
-        } else {
-            next()
+            assets(root, req, res);
         }
     }
 }
 
 module.exports.logger = () => {
-    return (req, res, next) => {
+    return (req, res) => {
         let start = Date.now();
         res.on('finish', () => {
             let finish = Date.now();
             console.log(`${req.method} ${req.url} ${finish - start} ms`)
         })
-        next();
     }
 
 }

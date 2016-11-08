@@ -3,7 +3,7 @@ const fs = require('fs');
 
 let files = [];
 
-module.exports = (folder, req, res, next) => {
+module.exports = (folder, req, res) => {
 
     const sendError = (message, code) => {
         if (code === undefined) {
@@ -50,20 +50,16 @@ module.exports = (folder, req, res, next) => {
     const readFile = (filePath) => {
         if (files[filePath]) {
             serve(files[filePath]);
-            next();
         } else {
-            fs.readFile(filePath, (err, data) => {
-                if (err) {
-                    sendError('Error reading file ' + filePath)
-                    return;
-                }
-                files[filePath] = {
-                    ext: filePath.split('.').pop(),
-                    content: data
-                }
-                serve(files[filePath]);
-                next();
-            });
+
+            // TODO Make the operation below async
+
+            const data = fs.readFileSync(filePath, 'UTF-8');
+            files[filePath] = {
+                ext: filePath.split('.').pop(),
+                content: data
+            }
+            serve(files[filePath]);
 
         }
     };

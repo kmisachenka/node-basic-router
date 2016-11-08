@@ -7,25 +7,13 @@ const router = require('./backend/router');
 
 const PORT = 9000;
 
-const app = router();
-
-// app.use(router.logger());
-// app.use(router.static(__dirname + '/public'));
-
-app.use((req, res, next) => {
-    console.log('First middleware');
-    next()
-});
-
-app.use((req, res, next) => {
-    console.log('Second middleware');
-    next();
-})
+const app = new router.Router();
 
 app.use(router.logger());
+app.use(router.static(__dirname + '/public'));
 
 app
-    .add('/', (req, res) => {
+    .add('/route', (req, res) => {
         let response = {
             handler: "route handler"
         }
